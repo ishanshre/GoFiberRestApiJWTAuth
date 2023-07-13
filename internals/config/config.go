@@ -5,7 +5,7 @@ import "log"
 type AppConfig struct {
 	InProduction bool
 	Port         int
-	DbDriverName string
+	DbString     string
 	InfoLog      *log.Logger
 	ErrorLog     *log.Logger
 }
