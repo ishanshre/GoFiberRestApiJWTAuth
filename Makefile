@@ -3,6 +3,7 @@
 include .env
 
 DB_URL=postgresql://${m_db_username}:${m_db_password}@localhost:5432/${m_db_dbname}?sslmode=disable
+TEST_DB_URL=postgresql://${m_db_username}:${m_db_password}@localhost:5432/${m_test_db_dbname}?sslmode=disable
 
 run:
 	go run ./cmd/api
@@ -34,3 +35,11 @@ migrateForce:
 migrateCreate:
 	migrate create -ext sql -dir migrations -seq $(fileName)
 
+testMigrateUp: 
+	migrate -path migrations -database "${TEST_DB_URL}" -verbose up
+
+testMigrateDown: 
+	migrate -path migrations -database "${TEST_DB_URL}" -verbose down
+
+testMigrateForce: 
+	migrate -path migrations -database "${TEST_DB_URL}" force $(version)

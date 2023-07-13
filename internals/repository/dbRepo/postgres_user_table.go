@@ -14,7 +14,7 @@ func (p *postgresDbRepo) AllUsers(limit, offset int) ([]*models.User, error) {
 	query := `SELECT * FROM users LIMIT $1 OFFSET $2`
 	rows, err := p.DB.QueryContext(ctx, query, limit, offset)
 	if err != nil {
-		return nil, fmt.Errorf("cannot executing the query: %s", err.Error())
+		return nil, fmt.Errorf("cannot execute the query: %s", err.Error())
 	}
 	users := []*models.User{}
 	for rows.Next() {
@@ -153,7 +153,7 @@ func (p *postgresDbRepo) UpdateUser(u *models.User) (*models.User, error) {
 }
 
 // UpdateRole takes id and role as parameter and update user roles
-func (p *postgresDbRepo) UpdateRole(id, role int) (*models.User, error) {
+func (p *postgresDbRepo) UpdateRole(u *models.User) (*models.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	query := `
@@ -165,8 +165,8 @@ func (p *postgresDbRepo) UpdateRole(id, role int) (*models.User, error) {
 	row := p.DB.QueryRowContext(
 		ctx,
 		query,
-		id,
-		role,
+		u.ID,
+		u.Role,
 	)
 	user := &models.User{}
 	if err := row.Scan(
@@ -190,8 +190,8 @@ func (p *postgresDbRepo) CreateUser(user *models.User) (*models.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	query := `
-		INSERT INTO users (first_name, last_name, username, email, password, role, created_at, updated_at)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+		INSERT INTO users (first_name, last_name, username, email, password, created_at, updated_at)
+		VALUES ($1,$2,$3,$4,$5,$6,$7)
 		RETURNING id, first_name, last_name, username, email, password, role, created_at, updated_at
 	`
 	row := p.DB.QueryRowContext(
@@ -202,7 +202,6 @@ func (p *postgresDbRepo) CreateUser(user *models.User) (*models.User, error) {
 		user.Username,
 		user.Email,
 		user.Password,
-		user.Role,
 		user.CreatedAt,
 		user.UpdatedAt,
 	)
