@@ -21,7 +21,10 @@ var errorLog *log.Logger
 
 func main() {
 
-	handler := run()
+	handler, db := run()
+
+	// closing the database connection at last
+	defer db.SQL.Close()
 
 	// create a new fiber app
 	app := fiber.New()
@@ -33,7 +36,7 @@ func main() {
 	app.Listen(fmt.Sprintf(":%d", global.Port))
 }
 
-func run() handlers.Handlers {
+func run() (handlers.Handlers, *drivers.DB) {
 	// Configire flag and parse it.
 	flag.IntVar(&global.Port, "port", 8000, "Port that servert listen to")
 	flag.StringVar(&global.DbString, "dbString", "postgres", "Database string name")
@@ -59,13 +62,10 @@ func run() handlers.Handlers {
 		global.ErrorLog.Printf("error in connecting to database: %s", err.Error())
 	}
 
-	// closing the database connection at last
-	defer db.SQL.Close()
-
 	// connect to repository interface
 	dbInterface := dbrepo.NewPostgresRepo(db.SQL, &global)
 
 	handlerInterface := handlers.NewHandler(dbInterface, &global)
 
-	return handlerInterface
+	return handlerInterface, db
 }

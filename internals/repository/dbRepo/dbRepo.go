@@ -2,6 +2,7 @@ package dbrepo
 
 import (
 	"database/sql"
+	"time"
 
 	"github.com/ishanshre/GoFiberRestApiJWTAuth/internals/config"
 	"github.com/ishanshre/GoFiberRestApiJWTAuth/internals/repository"
@@ -18,3 +19,5 @@ func NewPostgresRepo(conn *sql.DB, global *config.AppConfig) repository.Database
 		DB:     conn,
 	}
 }
+
+const timeout = 3 * time.Second
