@@ -9,6 +9,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/ishanshre/GoFiberRestApiJWTAuth/internals/config"
 	"github.com/ishanshre/GoFiberRestApiJWTAuth/internals/drivers"
+	"github.com/ishanshre/GoFiberRestApiJWTAuth/internals/handlers"
+	dbrepo "github.com/ishanshre/GoFiberRestApiJWTAuth/internals/repository/dbRepo"
 	"github.com/ishanshre/GoFiberRestApiJWTAuth/internals/routers"
 	"github.com/joho/godotenv"
 )
@@ -39,11 +41,16 @@ func main() {
 
 	defer db.SQL.Close()
 
+	// connect to repository interface
+	dbInterface := dbrepo.NewPostgresRepo(db.SQL, &global)
+
+	handlerInterface := handlers.NewHandler(dbInterface, &global)
+
 	// create a new fiber app
 	app := fiber.New()
 
 	// pass fiber app to router to create routes
-	routers.Router(&global, app)
+	routers.Router(&global, app, handlerInterface)
 
 	// start the server
 	app.Listen(fmt.Sprintf(":%d", global.Port))
