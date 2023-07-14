@@ -5,8 +5,10 @@ go 1.20
 require (
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/gofiber/fiber/v2 v2.47.0
+	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.9
+	github.com/satori/go.uuid v1.2.0
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/crypto v0.7.0
 )
