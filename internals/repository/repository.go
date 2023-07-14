@@ -10,7 +10,7 @@ type DatabaseRepo interface {
 	DeleteUser(username string) error
 	UpdateUser(u *models.User) (*models.User, error)
 	UpdateRole(u *models.User) (*models.User, error)
-	CreateUser(user *models.User) (*models.User, error)
+	CreateUser(user *models.ValidateUser) (*models.User, error)
 	UsernameExists(username string) (bool, error)
 	EmailExists(email string) (bool, error)
 }

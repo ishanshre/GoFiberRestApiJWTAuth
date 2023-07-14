@@ -13,7 +13,7 @@ import (
 )
 
 func createRandomUser(t *testing.T) *models.User {
-	args := &models.User{
+	args := &models.ValidateUser{
 		FirstName: utils.RandomString(6),
 		LastName:  utils.RandomString(6),
 		Username:  utils.RandomString(6),
@@ -42,7 +42,7 @@ func TestCreateUser(t *testing.T) {
 }
 
 func TestCreateUser_Failure(t *testing.T) {
-	args := &models.User{
+	args := &models.ValidateUser{
 		FirstName: "test",
 		LastName:  "test",
 		Username:  "test123",

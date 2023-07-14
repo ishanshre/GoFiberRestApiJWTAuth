@@ -193,7 +193,7 @@ func (p *postgresDbRepo) UpdateRole(u *models.User) (*models.User, error) {
 }
 
 // CreateUser takes user model as paramter to insert user into datbase
-func (p *postgresDbRepo) CreateUser(user *models.User) (*models.User, error) {
+func (p *postgresDbRepo) CreateUser(user *models.ValidateUser) (*models.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	query := `

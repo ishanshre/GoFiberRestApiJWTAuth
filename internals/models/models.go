@@ -18,8 +18,8 @@ type User struct {
 // Validate user struct is used in User creation or User update
 type ValidateUser struct {
 	ID        int       `json:"id"`
-	FirstName string    `json:"first_name,omitempty"`
-	LastName  string    `json:"last_name,omitempty"`
+	FirstName string    `json:"first_name"`
+	LastName  string    `json:"last_name"`
 	Username  string    `json:"username" validate:"required"`
 	Email     string    `json:"email" validate:"required"`
 	Password  string    `json:"password" validate:"required"`
