@@ -8,6 +8,9 @@ TEST_DB_URL=postgresql://${m_db_username}:${m_db_password}@localhost:5432/${m_te
 run:
 	go run ./cmd/api
 
+testAll:
+	go test -v -cover ./...
+
 createDBContainer:
 	docker run --name goFiberRestJWT -e POSTGRES_USER=${m_db_username} -e POSTGRES_PASSWORD=${m_db_password} -p 5432:5432 -d postgres
 

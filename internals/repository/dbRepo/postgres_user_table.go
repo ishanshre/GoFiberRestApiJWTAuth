@@ -110,12 +110,19 @@ func (p *postgresDbRepo) GetUserByEmail(email string) (*models.User, error) {
 }
 
 // func DeleteUser takes id as parameter and delete the user
-func (p *postgresDbRepo) DeleteUser(id int) error {
+func (p *postgresDbRepo) DeleteUser(username string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	query := `DELETE FROM users WHERE id=$1`
-	_, err := p.DB.ExecContext(ctx, query, id)
-	return err
+	query := `DELETE FROM users WHERE username=$1`
+	res, err := p.DB.ExecContext(ctx, query, username)
+	if err != nil {
+		return fmt.Errorf("error in executing the query: %v", err)
+	}
+	rowsAffected, _ := res.RowsAffected()
+	if rowsAffected == 0 {
+		return fmt.Errorf("user not deleted or user does not exists")
+	}
+	return nil
 }
 
 // func UpdateUser takes user model as paramter and updates the user
@@ -220,4 +227,32 @@ func (p *postgresDbRepo) CreateUser(user *models.User) (*models.User, error) {
 		return nil, err
 	}
 	return u, nil
+}
+
+func (p *postgresDbRepo) UsernameExists(username string) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	query := `
+		SELECT COUNT(*) FROM users WHERE username=$1
+	`
+	var count int
+	if err := p.DB.QueryRowContext(ctx, query, username).Scan(&count); err != nil {
+		return false, fmt.Errorf("failed to execute query: %w", err)
+	}
+	return count > 0, nil
+}
+
+func (p *postgresDbRepo) EmailExists(email string) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	query := `
+		SELECT COUNT(*) FROM users WHERE email=$1
+	`
+	var count int
+	if err := p.DB.QueryRowContext(ctx, query, email).Scan(&count); err != nil {
+		return false, fmt.Errorf("failed to execute query: %w", err)
+	}
+	return count > 0, nil
 }

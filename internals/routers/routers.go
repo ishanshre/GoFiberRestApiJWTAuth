@@ -13,5 +13,12 @@ func Router(global *config.AppConfig, app *fiber.App, h handlers.Handlers) {
 
 	app.Use(logger.New())
 
-	app.Get("/", h.AllUsers)
+	api := app.Group("/api")
+
+	v1 := api.Group("/v1")
+
+	user := v1.Group("/users")
+	user.Get("/", h.AllUsers)
+	user.Get("/detail/:username", h.GetUserByUsername)
+	user.Delete("/detail/:username/delete", h.DeleteUserByUsername)
 }

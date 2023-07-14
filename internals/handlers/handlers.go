@@ -8,6 +8,8 @@ import (
 
 type Handlers interface {
 	AllUsers(ctx *fiber.Ctx) error
+	GetUserByUsername(ctx *fiber.Ctx) error
+	DeleteUserByUsername(ctx *fiber.Ctx) error
 }
 
 type handler struct {

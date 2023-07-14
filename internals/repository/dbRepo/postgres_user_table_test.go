@@ -113,9 +113,9 @@ func TestGetUserByEmail_Failure(t *testing.T) {
 
 func TestDeleteUser(t *testing.T) {
 	user := createRandomUser(t)
-	err := testQueries.DeleteUser(user.ID)
+	err := testQueries.DeleteUser(user.Username)
 	require.NoError(t, err)
-	getUser, err := testQueries.GetUserByID(user.ID)
+	getUser, err := testQueries.GetUserByUsername(user.Username)
 	require.Error(t, err)
 	require.EqualError(t, err, sql.ErrNoRows.Error())
 	require.Empty(t, getUser)
