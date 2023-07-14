@@ -3,6 +3,7 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/ishanshre/GoFiberRestApiJWTAuth/internals/helpers"
@@ -68,6 +69,13 @@ func (h *handler) RegisterUser(ctx *fiber.Ctx) error {
 		})
 	}
 
+	if err := validate.Struct(userData); err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(helpers.Message{
+			MessageStatus: "error",
+			Message:       err.Error(),
+		})
+	}
+
 	exists, err := h.UsernameOrEmailExists(userData.Username, userData.Email)
 	if err != nil {
 		return ctx.Status(http.StatusBadRequest).JSON(helpers.Message{
@@ -83,6 +91,8 @@ func (h *handler) RegisterUser(ctx *fiber.Ctx) error {
 	}
 	hashedPassword, _ := utils.GeneratePassword(userData.Password)
 	userData.Password = hashedPassword
+	userData.CreatedAt = time.Now()
+	userData.UpdatedAt = time.Now()
 	user, err := h.repo.CreateUser(userData)
 	if err != nil {
 		return ctx.Status(http.StatusInternalServerError).JSON(helpers.Message{

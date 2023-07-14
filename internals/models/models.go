@@ -20,9 +20,9 @@ type ValidateUser struct {
 	ID        int       `json:"id"`
 	FirstName string    `json:"first_name"`
 	LastName  string    `json:"last_name"`
-	Username  string    `json:"username" validate:"required"`
-	Email     string    `json:"email" validate:"required"`
-	Password  string    `json:"password" validate:"required"`
+	Username  string    `json:"username" validate:"required,min=5,max=20"`
+	Email     string    `json:"email" validate:"required,email"`
+	Password  string    `json:"password" validate:"required,min=8,containsany=!@#$%^&*(),upper,lower,number"`
 	Role      int       `json:"role"`
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
