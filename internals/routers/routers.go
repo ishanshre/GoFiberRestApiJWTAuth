@@ -6,9 +6,10 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/ishanshre/GoFiberRestApiJWTAuth/internals/config"
 	"github.com/ishanshre/GoFiberRestApiJWTAuth/internals/handlers"
+	"github.com/ishanshre/GoFiberRestApiJWTAuth/internals/middlewares"
 )
 
-func Router(global *config.AppConfig, app *fiber.App, h handlers.Handlers) {
+func Router(global *config.AppConfig, app *fiber.App, h handlers.Handlers, m middlewares.MiddlewareRepo) {
 	app.Use(cors.New())
 
 	app.Use(logger.New())
@@ -17,10 +18,9 @@ func Router(global *config.AppConfig, app *fiber.App, h handlers.Handlers) {
 
 	v1 := api.Group("/v1")
 	v1.Post("/login", h.UserLogin)
-
-	user := v1.Group("/users")
+	v1.Post("/", h.RegisterUser)
+	user := v1.Group("/users", m.JwtAuth())
 	user.Get("/", h.AllUsers)
-	user.Post("/", h.RegisterUser)
 	user.Get("/:username", h.GetUserByUsername)
 	user.Delete("/:username/delete", h.DeleteUserByUsername)
 }

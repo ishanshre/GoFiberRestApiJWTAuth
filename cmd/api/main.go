@@ -10,6 +10,7 @@ import (
 	"github.com/ishanshre/GoFiberRestApiJWTAuth/internals/config"
 	"github.com/ishanshre/GoFiberRestApiJWTAuth/internals/drivers"
 	"github.com/ishanshre/GoFiberRestApiJWTAuth/internals/handlers"
+	"github.com/ishanshre/GoFiberRestApiJWTAuth/internals/middlewares"
 	dbrepo "github.com/ishanshre/GoFiberRestApiJWTAuth/internals/repository/dbRepo"
 	"github.com/ishanshre/GoFiberRestApiJWTAuth/internals/routers"
 	"github.com/joho/godotenv"
@@ -33,7 +34,7 @@ func main() {
 	flag.StringVar(&global.RedisHost, "redisHost", "127.0.0.1:6379", "address to redis")
 	flag.Parse()
 
-	handler, db := run(&global)
+	handler, db, middleware := run(&global)
 
 	// closing the database connection at last
 	defer db.SQL.Close()
@@ -42,13 +43,13 @@ func main() {
 	app := fiber.New()
 
 	// pass fiber app to router to create routes
-	routers.Router(&global, app, handler)
+	routers.Router(&global, app, handler, middleware)
 
 	// start the server
 	app.Listen(fmt.Sprintf(":%d", global.Port))
 }
 
-func run(global *config.AppConfig) (handlers.Handlers, *drivers.DB) {
+func run(global *config.AppConfig) (handlers.Handlers, *drivers.DB, middlewares.MiddlewareRepo) {
 
 	// global config
 	global.InProduction = false
@@ -79,5 +80,7 @@ func run(global *config.AppConfig) (handlers.Handlers, *drivers.DB) {
 
 	handlerInterface := handlers.NewHandler(dbInterface, global, redisPool)
 
-	return handlerInterface, db
+	middleware := middlewares.NewMiddleware(redisPool)
+
+	return handlerInterface, db, middleware
 }

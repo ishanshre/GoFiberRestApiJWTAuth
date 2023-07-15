@@ -9,6 +9,7 @@ import (
 	"github.com/ishanshre/GoFiberRestApiJWTAuth/internals/config"
 	"github.com/ishanshre/GoFiberRestApiJWTAuth/internals/drivers"
 	"github.com/ishanshre/GoFiberRestApiJWTAuth/internals/handlers"
+	"github.com/ishanshre/GoFiberRestApiJWTAuth/internals/middlewares"
 	dbrepo "github.com/ishanshre/GoFiberRestApiJWTAuth/internals/repository/dbRepo"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
@@ -34,7 +35,8 @@ func TestRouter(t *testing.T) {
 	)
 
 	h = handlers.NewHandler(dbInterface, global, redisPool)
-	Router(global, app, h)
+	m := middlewares.NewMiddleware(redisPool)
+	Router(global, app, h, m)
 	res, err := app.Test(httptest.NewRequest(http.MethodGet, "/api/v1/users", nil))
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, res.StatusCode)

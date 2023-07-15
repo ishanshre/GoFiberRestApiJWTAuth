@@ -20,12 +20,12 @@ func TestRun(t *testing.T) {
 	}
 	global.DbString = "postgres"
 	global.Dsn = "test"
-	testHandler, testDb := run(&global)
+	testHandler, testDb, middleware := run(&global)
 	defer testDb.SQL.Close()
 
 	app := fiber.New()
 
-	routers.Router(&global, app, testHandler)
+	routers.Router(&global, app, testHandler, middleware)
 	res, err := app.Test(httptest.NewRequest(http.MethodGet, "/api/v1/users", nil))
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, res.StatusCode)
