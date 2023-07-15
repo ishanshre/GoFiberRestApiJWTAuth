@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -92,8 +94,15 @@ func (h *handler) UserLogin(ctx *fiber.Ctx) error {
 			Message:       "password does not match",
 		})
 	}
-	tokenDetail, _, err := utils.GenerateLoginResponse(userData.ID, userData.Username)
+	loginResponse, tokens, err := utils.GenerateLoginResponse(userData.ID, userData.Username)
 	if err != nil {
+		return ctx.Status(http.StatusInternalServerError).JSON(helpers.Message{
+			MessageStatus: "error",
+			Message:       err.Error(),
+		})
+	}
+	tokensJSON, _ := json.Marshal(tokens)
+	if err := h.redisHost.Set(context.Background(), tokens.AccessToken.TokenID, tokensJSON, time.Until(tokens.AccessToken.ExpiresAt)).Err(); err != nil {
 		return ctx.Status(http.StatusInternalServerError).JSON(helpers.Message{
 			MessageStatus: "error",
 			Message:       err.Error(),
@@ -101,6 +110,6 @@ func (h *handler) UserLogin(ctx *fiber.Ctx) error {
 	}
 	return ctx.Status(http.StatusOK).JSON(helpers.Message{
 		MessageStatus: "success",
-		Data:          tokenDetail,
+		Data:          loginResponse,
 	})
 }

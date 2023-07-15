@@ -6,6 +6,7 @@ import (
 	"github.com/ishanshre/GoFiberRestApiJWTAuth/internals/config"
 	"github.com/ishanshre/GoFiberRestApiJWTAuth/internals/repository"
 	"github.com/ishanshre/GoFiberRestApiJWTAuth/internals/validators"
+	"github.com/redis/go-redis/v9"
 )
 
 type Handlers interface {
@@ -18,19 +19,21 @@ type Handlers interface {
 }
 
 type handler struct {
-	repo   repository.DatabaseRepo
-	global *config.AppConfig
+	repo      repository.DatabaseRepo
+	global    *config.AppConfig
+	redisHost *redis.Client
 }
 
 var validate *validator.Validate
 
-func NewHandler(r repository.DatabaseRepo, global *config.AppConfig) Handlers {
+func NewHandler(r repository.DatabaseRepo, global *config.AppConfig, rH *redis.Client) Handlers {
 	validate = validator.New()
 	validate.RegisterValidation("upper", validators.UpperCase)
 	validate.RegisterValidation("lower", validators.LowerCase)
 	validate.RegisterValidation("number", validators.Number)
 	return &handler{
-		repo:   r,
-		global: global,
+		repo:      r,
+		global:    global,
+		redisHost: rH,
 	}
 }

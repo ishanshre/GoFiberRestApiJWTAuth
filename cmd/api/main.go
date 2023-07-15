@@ -13,6 +13,7 @@ import (
 	dbrepo "github.com/ishanshre/GoFiberRestApiJWTAuth/internals/repository/dbRepo"
 	"github.com/ishanshre/GoFiberRestApiJWTAuth/internals/routers"
 	"github.com/joho/godotenv"
+	"github.com/redis/go-redis/v9"
 )
 
 var infoLog *log.Logger
@@ -29,6 +30,7 @@ func main() {
 	flag.IntVar(&global.Port, "port", 8000, "Port that servert listen to")
 	flag.StringVar(&global.DbString, "dbString", "postgres", "Database string name")
 	flag.StringVar(&global.Dsn, "dsn", "postgres", "maps to env key pair")
+	flag.StringVar(&global.RedisHost, "redisHost", "127.0.0.1:6379", "address to redis")
 	flag.Parse()
 
 	handler, db := run(&global)
@@ -63,10 +65,19 @@ func run(global *config.AppConfig) (handlers.Handlers, *drivers.DB) {
 		global.ErrorLog.Printf("error in connecting to database: %s", err.Error())
 	}
 
+	redisPool := redis.NewClient(
+		&redis.Options{
+			Addr:         global.RedisHost,
+			Password:     "",
+			DB:           0,
+			MaxIdleConns: 10,
+		},
+	)
+
 	// connect to repository interface
 	dbInterface := dbrepo.NewPostgresRepo(db.SQL, global)
 
-	handlerInterface := handlers.NewHandler(dbInterface, global)
+	handlerInterface := handlers.NewHandler(dbInterface, global, redisPool)
 
 	return handlerInterface, db
 }

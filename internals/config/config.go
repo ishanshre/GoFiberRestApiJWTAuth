@@ -7,6 +7,7 @@ type AppConfig struct {
 	Port         int
 	DbString     string
 	Dsn          string
+	RedisHost    string
 	InfoLog      *log.Logger
 	ErrorLog     *log.Logger
 }

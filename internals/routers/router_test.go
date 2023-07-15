@@ -10,6 +10,7 @@ import (
 	"github.com/ishanshre/GoFiberRestApiJWTAuth/internals/drivers"
 	"github.com/ishanshre/GoFiberRestApiJWTAuth/internals/handlers"
 	dbrepo "github.com/ishanshre/GoFiberRestApiJWTAuth/internals/repository/dbRepo"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -21,9 +22,18 @@ func TestRouter(t *testing.T) {
 	if err != nil {
 		t.Errorf("Cannot connect to database: %v", err)
 	}
-	dbInterface := dbrepo.NewPostgresRepo(db.SQL, global)
 
-	h = handlers.NewHandler(dbInterface, global)
+	dbInterface := dbrepo.NewPostgresRepo(db.SQL, global)
+	redisPool := redis.NewClient(
+		&redis.Options{
+			Addr:         global.RedisHost,
+			Password:     "",
+			DB:           0,
+			MaxIdleConns: 10,
+		},
+	)
+
+	h = handlers.NewHandler(dbInterface, global, redisPool)
 	Router(global, app, h)
 	res, err := app.Test(httptest.NewRequest(http.MethodGet, "/api/v1/users", nil))
 	assert.NoError(t, err)
