@@ -11,9 +11,6 @@ type DB struct {
 	SQL *sql.DB
 }
 
-// dbConn holds the db global instance
-var dbConn = &DB{}
-
 const (
 	maxOpenDBConn = 10
 	maxIdelDBConn = 5
@@ -30,12 +27,9 @@ func ConnectSql(dbString, dsn string) (*DB, error) {
 	d.SetMaxOpenConns(maxOpenDBConn)
 	d.SetConnMaxLifetime(maxLifeDBTime)
 
-	dbConn.SQL = d
-
-	if err := testDB(d); err != nil {
-		return nil, err
-	}
-	return dbConn, nil
+	return &DB{
+		SQL: d,
+	}, nil
 }
 
 func newDatabase(dbString, dsn string) (*sql.DB, error) {
@@ -47,8 +41,4 @@ func newDatabase(dbString, dsn string) (*sql.DB, error) {
 		return nil, err
 	}
 	return db, nil
-}
-
-func testDB(d *sql.DB) error {
-	return d.Ping()
 }
