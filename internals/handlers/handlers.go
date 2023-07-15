@@ -14,6 +14,7 @@ type Handlers interface {
 	DeleteUserByUsername(ctx *fiber.Ctx) error
 	RegisterUser(ctx *fiber.Ctx) error
 	UsernameOrEmailExists(username, email string) (bool, error)
+	UserLogin(ctx *fiber.Ctx) error
 }
 
 type handler struct {

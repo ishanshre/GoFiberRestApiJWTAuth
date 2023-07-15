@@ -3,12 +3,9 @@ package handlers
 import (
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/ishanshre/GoFiberRestApiJWTAuth/internals/helpers"
-	"github.com/ishanshre/GoFiberRestApiJWTAuth/internals/models"
-	"github.com/ishanshre/GoFiberRestApiJWTAuth/utils"
 )
 
 func (h *handler) AllUsers(ctx *fiber.Ctx) error {
@@ -58,53 +55,6 @@ func (h *handler) DeleteUserByUsername(ctx *fiber.Ctx) error {
 		Message:       "user deleted Successfully",
 	})
 
-}
-
-func (h *handler) RegisterUser(ctx *fiber.Ctx) error {
-	userData := &models.ValidateUser{}
-	if err := ctx.BodyParser(&userData); err != nil {
-		return ctx.Status(http.StatusBadRequest).JSON(helpers.Message{
-			Message: "error parsing data",
-			Data:    err.Error(),
-		})
-	}
-
-	if err := validate.Struct(userData); err != nil {
-		return ctx.Status(http.StatusBadRequest).JSON(helpers.Message{
-			MessageStatus: "error",
-			Message:       err.Error(),
-		})
-	}
-
-	exists, err := h.UsernameOrEmailExists(userData.Username, userData.Email)
-	if err != nil {
-		return ctx.Status(http.StatusBadRequest).JSON(helpers.Message{
-			MessageStatus: "error",
-			Message:       err.Error(),
-		})
-	}
-	if exists {
-		return ctx.Status(http.StatusBadRequest).JSON(helpers.Message{
-			MessageStatus: "error",
-			Message:       "username/email already",
-		})
-	}
-	hashedPassword, _ := utils.GeneratePassword(userData.Password)
-	userData.Password = hashedPassword
-	userData.CreatedAt = time.Now()
-	userData.UpdatedAt = time.Now()
-	user, err := h.repo.CreateUser(userData)
-	if err != nil {
-		return ctx.Status(http.StatusInternalServerError).JSON(helpers.Message{
-			MessageStatus: "error",
-			Message:       err.Error(),
-		})
-	}
-
-	return ctx.Status(200).JSON(helpers.Message{
-		MessageStatus: "success",
-		Data:          user,
-	})
 }
 
 func (h *handler) UsernameOrEmailExists(username, email string) (bool, error) {

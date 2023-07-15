@@ -16,6 +16,7 @@ func Router(global *config.AppConfig, app *fiber.App, h handlers.Handlers) {
 	api := app.Group("/api")
 
 	v1 := api.Group("/v1")
+	v1.Post("/login", h.UserLogin)
 
 	user := v1.Group("/users")
 	user.Get("/", h.AllUsers)
