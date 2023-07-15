@@ -15,13 +15,23 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var global config.AppConfig
 var infoLog *log.Logger
 var errorLog *log.Logger
 
 func main() {
+	var global config.AppConfig
+	// load environement files
+	if err := godotenv.Load(".env"); err != nil {
+		log.Printf("Error in loading environment files: %s\n", err.Error())
+	}
 
-	handler, db := run()
+	// Configire flag and parse it.
+	flag.IntVar(&global.Port, "port", 8000, "Port that servert listen to")
+	flag.StringVar(&global.DbString, "dbString", "postgres", "Database string name")
+	flag.StringVar(&global.Dsn, "dsn", "postgres", "maps to env key pair")
+	flag.Parse()
+
+	handler, db := run(&global)
 
 	// closing the database connection at last
 	defer db.SQL.Close()
@@ -36,11 +46,7 @@ func main() {
 	app.Listen(fmt.Sprintf(":%d", global.Port))
 }
 
-func run() (handlers.Handlers, *drivers.DB) {
-	// Configire flag and parse it.
-	flag.IntVar(&global.Port, "port", 8000, "Port that servert listen to")
-	flag.StringVar(&global.DbString, "dbString", "postgres", "Database string name")
-	flag.Parse()
+func run(global *config.AppConfig) (handlers.Handlers, *drivers.DB) {
 
 	// global config
 	global.InProduction = false
@@ -51,21 +57,16 @@ func run() (handlers.Handlers, *drivers.DB) {
 	global.InfoLog = infoLog
 	global.ErrorLog = errorLog
 
-	// load environement files
-	if err := godotenv.Load(".env"); err != nil {
-		global.ErrorLog.Printf("Error in loading environment files: %s", err.Error())
-	}
-
 	// connect to database
-	db, err := drivers.ConnectSql(global.DbString, os.Getenv(global.DbString))
+	db, err := drivers.ConnectSql(global.DbString, os.Getenv(global.Dsn))
 	if err != nil {
 		global.ErrorLog.Printf("error in connecting to database: %s", err.Error())
 	}
 
 	// connect to repository interface
-	dbInterface := dbrepo.NewPostgresRepo(db.SQL, &global)
+	dbInterface := dbrepo.NewPostgresRepo(db.SQL, global)
 
-	handlerInterface := handlers.NewHandler(dbInterface, &global)
+	handlerInterface := handlers.NewHandler(dbInterface, global)
 
 	return handlerInterface, db
 }
