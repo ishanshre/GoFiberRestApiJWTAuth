@@ -113,3 +113,31 @@ func (h *handler) UserLogin(ctx *fiber.Ctx) error {
 		Data:          loginResponse,
 	})
 }
+
+func (h *handler) UserLogout(ctx *fiber.Ctx) error {
+	tokenID, ok := ctx.Locals("tokenID").(string)
+	if !ok {
+		return fiber.NewError(fiber.StatusInternalServerError, "Failed to retrive token id")
+	}
+
+	// check for token in redis
+	exists, err := h.redisHost.Exists(context.Background(), tokenID).Result()
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(helpers.Message{
+			MessageStatus: "error",
+			Message:       fmt.Sprintf("error in deleting token: %s", err.Error()),
+		})
+	}
+	if exists == 1 {
+		if err := h.redisHost.Del(context.Background(), tokenID).Err(); err != nil {
+			return ctx.Status(fiber.StatusBadRequest).JSON(helpers.Message{
+				MessageStatus: "error",
+				Message:       err.Error(),
+			})
+		}
+	}
+	return ctx.Status(fiber.StatusOK).JSON(helpers.Message{
+		MessageStatus: "success",
+		Message:       "logout successfull",
+	})
+}

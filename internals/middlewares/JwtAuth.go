@@ -3,6 +3,7 @@ package middlewares
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
@@ -42,10 +43,18 @@ func (m *middlewares) JwtAuth() fiber.Handler {
 				Message:       fmt.Sprintf("invalid token: %s", err.Error()),
 			})
 		}
-		if err := m.redisClient.Exists(context.Background(), tokenDetail.TokenID).Err(); err != nil {
-			return ctx.Status(http.StatusBadRequest).JSON(helpers.Message{
+		exists, err := m.redisClient.Exists(context.Background(), tokenDetail.TokenID).Result()
+		log.Println(exists)
+		if err != nil {
+			return ctx.Status(http.StatusInternalServerError).JSON(helpers.Message{
 				MessageStatus: "error",
-				Message:       "Invalid token or token does not exists in cache",
+				Message:       err.Error(),
+			})
+		}
+		if exists == 0 {
+			return ctx.Status(http.StatusInternalServerError).JSON(helpers.Message{
+				MessageStatus: "error",
+				Message:       "invalid token/token not found in cache",
 			})
 		}
 		ctx.Locals("tokenID", tokenDetail.TokenID)
