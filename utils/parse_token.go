@@ -2,7 +2,6 @@ package utils
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -30,14 +29,11 @@ func VerifyTokenWithClaims(tokenString, subject string) (*TokenDetail, error) {
 func ExtractToken(tokenString, subject string, claims *Claims) (*jwt.Token, error) {
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New("invalud token signing method")
+			return nil, errors.New("invalid token signing method")
 		}
 		return Secret, nil
 	})
 	if err != nil {
-		if err == jwt.ErrSignatureInvalid {
-			return nil, fmt.Errorf("token signature invalid: %v", err)
-		}
 		return nil, err
 	}
 	return token, nil
