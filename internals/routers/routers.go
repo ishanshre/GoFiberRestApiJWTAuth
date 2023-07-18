@@ -20,6 +20,7 @@ func Router(global *config.AppConfig, app *fiber.App, h handlers.Handlers, m mid
 	v1 := api.Group("/v1")
 	v1.Post("/login", h.UserLogin)
 	v1.Post("/", h.RegisterUser)
+	v1.Post("/refresh", h.Refresh)
 	user := v1.Group("/users", m.JwtAuth())
 	user.Get("/", h.AllUsers)
 	user.Get("/:username", h.GetUserByUsername)

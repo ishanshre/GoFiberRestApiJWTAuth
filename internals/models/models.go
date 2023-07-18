@@ -32,3 +32,7 @@ type LoginUser struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
+
+type RefreshToken struct {
+	Token string `json:"refresh_token"`
+}

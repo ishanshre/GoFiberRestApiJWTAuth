@@ -17,6 +17,7 @@ type Handlers interface {
 	UsernameOrEmailExists(username, email string) (bool, error)
 	UserLogin(ctx *fiber.Ctx) error
 	UserLogout(ctx *fiber.Ctx) error
+	Refresh(ctx *fiber.Ctx) error
 }
 
 type handler struct {

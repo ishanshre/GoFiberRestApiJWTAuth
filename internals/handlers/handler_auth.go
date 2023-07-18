@@ -141,3 +141,58 @@ func (h *handler) UserLogout(ctx *fiber.Ctx) error {
 		Message:       "logout successfull",
 	})
 }
+
+func (h *handler) Refresh(ctx *fiber.Ctx) error {
+	refreshToken := &models.RefreshToken{}
+	if err := ctx.BodyParser(&refreshToken); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(helpers.Message{
+			MessageStatus: "error",
+			Message:       "Refresh Token not provided",
+		})
+	}
+	claims, err := utils.VerifyTokenWithClaims(refreshToken.Token, "refresh_token")
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(helpers.Message{
+			MessageStatus: "error",
+			Message:       err.Error(),
+		})
+	}
+	exists, err := h.redisHost.Exists(context.Background(), claims.TokenID).Result()
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(helpers.Message{
+			MessageStatus: "error",
+			Message:       err.Error(),
+		})
+	}
+	if exists == 1 {
+		if err := h.redisHost.Del(context.Background(), claims.TokenID).Err(); err != nil {
+			return ctx.Status(fiber.StatusInternalServerError).JSON(helpers.Message{
+				MessageStatus: "error",
+				Message:       err.Error(),
+			})
+		}
+	} else {
+		return ctx.Status(fiber.StatusBadRequest).JSON(helpers.Message{
+			MessageStatus: "error",
+			Message:       "Token already revoked",
+		})
+	}
+	loginResponse, tokens, err := utils.GenerateLoginResponse(claims.UserID, claims.Username)
+	if err != nil {
+		return ctx.Status(http.StatusInternalServerError).JSON(helpers.Message{
+			MessageStatus: "error",
+			Message:       err.Error(),
+		})
+	}
+	tokensJSON, _ := json.Marshal(tokens)
+	if err := h.redisHost.Set(context.Background(), tokens.AccessToken.TokenID, tokensJSON, time.Until(tokens.AccessToken.ExpiresAt)).Err(); err != nil {
+		return ctx.Status(http.StatusInternalServerError).JSON(helpers.Message{
+			MessageStatus: "error",
+			Message:       err.Error(),
+		})
+	}
+	return ctx.Status(http.StatusOK).JSON(helpers.Message{
+		MessageStatus: "success",
+		Data:          loginResponse,
+	})
+}
