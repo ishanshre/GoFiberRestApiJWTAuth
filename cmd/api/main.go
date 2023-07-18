@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -31,7 +32,7 @@ func main() {
 	flag.IntVar(&global.Port, "port", 8000, "Port that servert listen to")
 	flag.StringVar(&global.DbString, "dbString", "postgres", "Database string name")
 	flag.StringVar(&global.Dsn, "dsn", "postgres", "maps to env key pair")
-	flag.StringVar(&global.RedisHost, "redisHost", "127.0.0.1:6379", "address to redis")
+	flag.StringVar(&global.RedisHost, "redisHost", "redis:6379", "address to redis")
 	flag.Parse()
 
 	handler, db, middleware := run(&global)
@@ -60,20 +61,30 @@ func run(global *config.AppConfig) (handlers.Handlers, *drivers.DB, middlewares.
 	global.InfoLog = infoLog
 	global.ErrorLog = errorLog
 
+	log.Println(os.Getenv("postgres"))
+	log.Println(os.Getenv("DB_URL"))
+	log.Println(os.Getenv("test"))
+
 	// connect to database
-	db, err := drivers.ConnectSql(global.DbString, os.Getenv(global.Dsn))
+	db, err := drivers.ConnectSql(global.DbString, os.Getenv("DB_URL"))
 	if err != nil {
 		global.ErrorLog.Printf("error in connecting to database: %s", err.Error())
 	}
 
 	redisPool := redis.NewClient(
 		&redis.Options{
-			Addr:         global.RedisHost,
+			Addr:         os.Getenv("REDIS_URL"),
 			Password:     "",
 			DB:           0,
 			MaxIdleConns: 10,
+			PoolSize:     10,
+			MinIdleConns: 0,
 		},
 	)
+
+	if err := redisPool.Ping(context.Background()).Err(); err != nil {
+		global.ErrorLog.Printf("error in connecting to redis: %s", err.Error())
+	}
 
 	// connect to repository interface
 	dbInterface := dbrepo.NewPostgresRepo(db.SQL, global)
