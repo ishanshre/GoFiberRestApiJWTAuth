@@ -1,13 +1,16 @@
 package routers
 
 import (
+	"github.com/a-h/templ"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/adaptor"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/helmet"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/ishanshre/GoFiberRestApiJWTAuth/internals/config"
 	"github.com/ishanshre/GoFiberRestApiJWTAuth/internals/handlers"
 	"github.com/ishanshre/GoFiberRestApiJWTAuth/internals/middlewares"
+	"github.com/ishanshre/GoFiberRestApiJWTAuth/templates"
 )
 
 func Router(global *config.AppConfig, app *fiber.App, h handlers.Handlers, m middlewares.MiddlewareRepo) {
@@ -15,6 +18,10 @@ func Router(global *config.AppConfig, app *fiber.App, h handlers.Handlers, m mid
 
 	app.Use(logger.New())
 	app.Use(helmet.New())
+	app.Get("/", func(c *fiber.Ctx) error {
+		title := "Home"
+		return Render(c, templates.Base(title))
+	})
 	api := app.Group("/api")
 
 	v1 := api.Group("/v1")
@@ -26,4 +33,12 @@ func Router(global *config.AppConfig, app *fiber.App, h handlers.Handlers, m mid
 	user.Get("/:username", h.GetUserByUsername)
 	user.Delete("/:username/delete", h.DeleteUserByUsername)
 	user.Post("/:username/logout", h.UserLogout)
+}
+
+func Render(c *fiber.Ctx, component templ.Component, options ...func(*templ.ComponentHandler)) error {
+	componentHandler := templ.Handler(component)
+	for _, o := range options {
+		o(componentHandler)
+	}
+	return adaptor.HTTPHandler(componentHandler)(c)
 }
